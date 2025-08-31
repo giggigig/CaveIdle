@@ -341,8 +341,11 @@ MonoBehaviour:
   startPoint: {fileID: 1591286200}
   endPoint: {fileID: 890843539}
   waterDropPrefab: {fileID: 6768286888822727719, guid: fa8d38e70025040949f26f84b63afc8a, type: 3}
+  splashParticle: {fileID: 67902732}
+  enableSplashParticle: 1
+  splashDuration: 0.5
+  splashParticleCount: 10
   stalactite: {fileID: 1225318994}
-  DropParticle: {fileID: 67902732}
   dropDuration: 1
   autoDropInterval: 3
 --- !u!4 &375734742
@@ -1660,6 +1663,37 @@ Transform:
   m_Father: {fileID: 1225318994}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &980836666
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 980836667}
+  m_Layer: 0
+  m_Name: MushroomZoneTransform
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &980836667
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 980836666}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.79, y: -2.28, z: 0.03193019}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 14
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1000230010
 GameObject:
   m_ObjectHideFlags: 0
@@ -2052,6 +2086,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1158419894}
   m_CullTransparentMesh: 1
+--- !u!1 &1223766550
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1223766552}
+  - component: {fileID: 1223766551}
+  m_Layer: 0
+  m_Name: MushroonManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1223766551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1223766550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57e6f774bcd3f0a4c887d95d5703c744, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mushroomPrefab: {fileID: 667843437860815299, guid: 73a03bb8bbca1cf429c65cdc69f4d7da, type: 3}
+  spawnCenter: {fileID: 980836667}
+  spawnRadius: 1.59
+  maxMushrooms: 30
+  baseGrowthTime: 300
+  growthStageTime: 100
+  baseSpawnInterval: 120
+  optimalHumidityMin: 80
+  optimalHumidityMax: 90
+  currentHumidity: 50
+  humidityDecayRate: 2
+  humidityPerDrop: 5
+  maxHumidity: 100
+--- !u!4 &1223766552
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1223766550}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.06349161, y: 0.39960074, z: 0.03193019}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 13
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1225318993
 GameObject:
   m_ObjectHideFlags: 0
@@ -2561,6 +2652,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1948926111}
   m_CullTransparentMesh: 1
+--- !u!1 &1958976551
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1958976553}
+  - component: {fileID: 1958976552}
+  m_Layer: 0
+  m_Name: TouchManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1958976552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1958976551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1091ec12c08bff49924ba481a99cab6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stalactiteTransform: {fileID: 1225318994}
+  stalactiteTouchRadius: 1
+  mushroomHarvestRadius: 0.8
+  enableDragHarvest: 1
+  showDragTrail: 1
+  waterDropSystem: {fileID: 375734741}
+  stalactiteGrowth: {fileID: 1225318995}
+  enableTouch: 1
+  touchCooldown: 0.1
+  enableTouchEffects: 1
+  shakeIntensity: 0.05
+  shakeDuration: 0.3
+--- !u!4 &1958976553
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1958976551}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.06349161, y: 0.39960074, z: 0.03193019}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 12
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2010708727
 GameObject:
   m_ObjectHideFlags: 0

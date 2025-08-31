@@ -13,34 +13,34 @@ public class StalactiteUIManager : MonoBehaviour
     public TextMeshProUGUI dayText;                  // "나이     N일째"
     public TextMeshProUGUI crackText;                // "균열도   XX"
     public TextMeshProUGUI totalDayText;             // 우측 상단 "N일째"
-    
+
     [Header("Target")]
     public StalactiteGrowth targetStalactite;       // 표시할 종유석
-    
+
     private DateTime gameStartDate;
     private const string GAME_START_DATE_KEY = "game_start_date";
-    
+
     void Start()
     {
         // 게임 시작일 로드/설정
         LoadGameStartDate();
-        
+
         // 초기 UI 설정
         if (stalactiteTitleText != null)
             stalactiteTitleText.text = "종유석";
-            
+
         UpdateUI();
     }
-    
+
     void Update()
     {
-        // 1초마다 UI 업데이트
+        // 1초마다 UI 업데이트 (성능 최적화)
         if (Time.time % 1f < Time.deltaTime)
         {
             UpdateUI();
         }
     }
-    
+
     /// <summary>
     /// 균열도에 따른 색상 반환
     /// </summary>
@@ -52,33 +52,34 @@ public class StalactiteUIManager : MonoBehaviour
         else if (crackLevel < 90f) return "red";       // 심한 균열: 빨간색
         else return "#FF0080";                         // 파괴 직전: 자주색 (위험!)
     }
-    
+
     void UpdateUI()
     {
         if (targetStalactite == null) return;
-        
+
         // 종유석 정보 가져오기
         StalactiteInfo info = targetStalactite.GetInfo();
-        
-        // 길이 표시 (소수점 3자리)
+
+        // 길이 표시 (소수점 7자리)
         if (lengthText != null)
         {
-            lengthText.text = $"길이    {info.lengthMM:F3}mm";
+            lengthText.text = $"길이    {info.lengthMM:F7}mm";
+           // Debug.Log($"UI 업데이트: 길이 = {info.lengthMM:F7}mm");
         }
-        
+
         // 나이 표시
         if (dayText != null)
         {
             dayText.text = $"나이     {info.daysElapsed}일째";
         }
-        
+
         // 균열도 표시
         if (crackText != null)
         {
             string crackColor = GetCrackColor(info.crackLevel);
             crackText.text = $"균열도   <color={crackColor}>{info.crackLevel:F1}</color>";
         }
-        
+
         // 전체 게임 진행일 표시 (우측 상단)
         if (totalDayText != null)
         {
@@ -88,7 +89,7 @@ public class StalactiteUIManager : MonoBehaviour
             totalDayText.text = $"{totalDays}일째";
         }
     }
-    
+
     void LoadGameStartDate()
     {
         if (PlayerPrefs.HasKey(GAME_START_DATE_KEY))
@@ -103,7 +104,7 @@ public class StalactiteUIManager : MonoBehaviour
             PlayerPrefs.Save();
         }
     }
-    
+
     /// <summary>
     /// 다른 종유석으로 타겟 변경
     /// </summary>
@@ -112,7 +113,7 @@ public class StalactiteUIManager : MonoBehaviour
         targetStalactite = newTarget;
         UpdateUI();
     }
-    
+
     /// <summary>
     /// UI 강제 새로고침
     /// </summary>
@@ -120,7 +121,7 @@ public class StalactiteUIManager : MonoBehaviour
     {
         UpdateUI();
     }
-    
+
     // 디버그용
     [ContextMenu("Reset Game Start Date")]
     public void ResetGameStartDate()
