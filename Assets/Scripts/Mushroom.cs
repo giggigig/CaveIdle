@@ -2,30 +2,34 @@ using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// °³º° ¹ö¼¸ÀÇ ¼ºÀå ¹× »óÈ£ÀÛ¿ëÀ» °ü¸®
+/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½È£ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 /// </summary>
 public class Mushroom : MonoBehaviour
 {
     public enum GrowthStage
     {
-        Sprout = 0,    // »õ½Ï (½ÃÀÛ)
-        Growing = 1,   // ¼ºÀå Áß (Áß°£)  
-        Mature = 2     // ¼º¼÷ (¼öÈ® °¡´É)
+        Sprout = 0,    // ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½)
+        Growing = 1,   // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ (ï¿½ß°ï¿½)  
+        Mature = 2     // ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½È® ï¿½ï¿½ï¿½ï¿½)
     }
 
     [Header("Growth Sprites")]
-    public Sprite[] growthSprites = new Sprite[3];  // 3´Ü°è ½ºÇÁ¶óÀÌÆ® ¹è¿­
+    public Sprite[] growthSprites = new Sprite[3];  // 3ï¿½Ü°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½è¿­
 
     [Header("Current State")]
     public GrowthStage currentStage = GrowthStage.Sprout;
-    public float growthProgress = 0f;               // 0~1 ¼ºÀå ÁøÇà·ü
-    public bool isHarvestable = false;              // ¼öÈ® °¡´É ¿©ºÎ
+    public float growthProgress = 0f;               // 0~1 ì„±ì¥ ì§„í–‰ë„
+    public bool isHarvestable = false;              // ìˆ˜í™• ê°€ëŠ¥ ì—¬ë¶€
+    
+    [Header("Mushroom Type")]
+    public MushroomType mushroomType;               // ë²„ì„¯ ì¢…ë¥˜
+    public string mushroomTypeName = "Common";      // ë²„ì„¯ íƒ€ì… ì´ë¦„
 
     private MushroomManager manager;
     private SpriteRenderer spriteRenderer;
-    private float stageTime = 100f;                 // °¢ ´Ü°èº° ¼Ò¿ä ½Ã°£
-    private float totalGrowthTime;                  // ÀüÃ¼ ¼ºÀå ½Ã°£ (3´Ü°è)
-    private float startTime;                        // ¼ºÀå ½ÃÀÛ ½Ã°£
+    private float stageTime = 100f;                 // ï¿½ï¿½ ï¿½Ü°èº° ï¿½Ò¿ï¿½ ï¿½Ã°ï¿½
+    private float totalGrowthTime;                  // ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ (3ï¿½Ü°ï¿½)
+    private float startTime;                        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 
     void Awake()
     {
@@ -35,55 +39,68 @@ public class Mushroom : MonoBehaviour
             spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
         }
 
-        // Collider2D Ãß°¡ (µå·¡±× ¼öÈ®À» À§ÇØ ÇÊ¿ä)
+        // Collider2D ï¿½ß°ï¿½ (ï¿½å·¡ï¿½ï¿½ ï¿½ï¿½È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½)
         Collider2D collider = GetComponent<Collider2D>();
         if (collider == null)
         {
             CircleCollider2D circleCollider = gameObject.AddComponent<CircleCollider2D>();
             circleCollider.isTrigger = true;
-            circleCollider.radius = 0.3f; // ¹ö¼¸ Å©±â¿¡ ¸Â°Ô Á¶Á¤
+            circleCollider.radius = 0.3f; // ï¿½ï¿½ï¿½ï¿½ Å©ï¿½â¿¡ ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½
         }
     }
 
     /// <summary>
-    /// ¹ö¼¸ ÃÊ±âÈ­ (MushroomManager¿¡¼­ È£Ãâ)
+    /// ë²„ì„¯ ì´ˆê¸°í™” (MushroomManagerì—ì„œ í˜¸ì¶œ)
     /// </summary>
-    public void Initialize(MushroomManager mushroomManager, float growthStageTime)
+    public void Initialize(MushroomManager mushroomManager, float growthStageTime, MushroomType type = null)
     {
         manager = mushroomManager;
         stageTime = growthStageTime;
-        totalGrowthTime = stageTime * 3; // 3´Ü°èÀÌ¹Ç·Î
+        totalGrowthTime = stageTime * 3; // 3ë‹¨ê³„ì´ë¯€ë¡œ
         startTime = Time.time;
 
         currentStage = GrowthStage.Sprout;
         growthProgress = 0f;
         isHarvestable = false;
+        
+        // ë²„ì„¯ íƒ€ì… ì„¤ì •
+        if (type != null)
+        {
+            mushroomType = type;
+            mushroomTypeName = type.typeName;
+            
+            // í¬ê·€ë„ì— ë”°ë¥¸ ìƒ‰ìƒ ì ìš©
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = Color.Lerp(Color.white, type.rarityColor, 0.3f);
+            }
+        }
 
         UpdateVisual();
 
-        Debug.Log($"¹ö¼¸ ÃÊ±âÈ­: ´Ü°èº° {stageTime}ÃÊ, ÃÑ {totalGrowthTime}ÃÊ");
+        Debug.Log($"ë²„ì„¯ ì´ˆê¸°í™”: íƒ€ì…({mushroomTypeName}), ë‹¨ê³„ë³„ {stageTime}ì´ˆ, ì´ {totalGrowthTime}ì´ˆ");
     }
 
     void Update()
     {
-        if (!isHarvestable) // ¾ÆÁ÷ ¼º¼÷ÇÏÁö ¾Ê¾ÒÀ¸¸é °è¼Ó ¼ºÀå
+        if (!isHarvestable) // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         {
             UpdateGrowth();
         }
 
-        // ÅÍÄ¡ °¨Áö
+        // ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
         HandleInput();
     }
 
     /// <summary>
-    /// ¼ºÀå ¾÷µ¥ÀÌÆ®
+    /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     /// </summary>
     void UpdateGrowth()
     {
         float elapsedTime = Time.time - startTime;
         growthProgress = Mathf.Clamp01(elapsedTime / totalGrowthTime);
 
-        // ÇöÀç ´Ü°è °è»ê
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½ ï¿½ï¿½ï¿½
         GrowthStage newStage;
         if (growthProgress < 0.33f)
         {
@@ -98,23 +115,23 @@ public class Mushroom : MonoBehaviour
             newStage = GrowthStage.Mature;
         }
 
-        // ´Ü°è°¡ ¹Ù²î¾úÀ¸¸é ºñÁÖ¾ó ¾÷µ¥ÀÌÆ®
+        // ï¿½Ü°è°¡ ï¿½Ù²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ö¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
         if (newStage != currentStage)
         {
             currentStage = newStage;
             UpdateVisual();
 
-            // ¼º¼÷ ´Ü°è¿¡ µµ´ŞÇÏ¸é ¼öÈ® °¡´É
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°è¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½È® ï¿½ï¿½ï¿½ï¿½
             if (currentStage == GrowthStage.Mature)
             {
                 isHarvestable = true;
-                Debug.Log("¹ö¼¸ÀÌ ¼º¼÷Çß½À´Ï´Ù! ¼öÈ® °¡´É!");
+                Debug.Log("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½! ï¿½ï¿½È® ï¿½ï¿½ï¿½ï¿½!");
             }
         }
     }
 
     /// <summary>
-    /// ºñÁÖ¾ó ¾÷µ¥ÀÌÆ®
+    /// ï¿½ï¿½ï¿½Ö¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     /// </summary>
     void UpdateVisual()
     {
@@ -125,7 +142,7 @@ public class Mushroom : MonoBehaviour
             {
                 spriteRenderer.sprite = growthSprites[stageIndex];
 
-                // ¼ºÀå¿¡ µû¸¥ Å©±â Á¶Àı (¼±ÅÃ»çÇ×)
+                // ï¿½ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½)
                 float scaleMultiplier = 0.5f + (growthProgress * 0.5f); // 0.5 ~ 1.0
                 transform.localScale = Vector3.one * scaleMultiplier;
             }
@@ -133,14 +150,14 @@ public class Mushroom : MonoBehaviour
     }
 
     /// <summary>
-    /// ÅÍÄ¡ ÀÔ·Â Ã³¸®
+    /// ï¿½ï¿½Ä¡ ï¿½Ô·ï¿½ Ã³ï¿½ï¿½
     /// </summary>
     void HandleInput()
     {
         bool inputDetected = false;
         Vector3 inputPosition = Vector3.zero;
 
-        // ¸ğ¹ÙÀÏ ÅÍÄ¡
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -150,7 +167,7 @@ public class Mushroom : MonoBehaviour
                 inputPosition = Camera.main.ScreenToWorldPoint(touch.position);
             }
         }
-        // PC ¸¶¿ì½º
+        // PC ï¿½ï¿½ï¿½ì½º
         else if (Input.GetMouseButtonDown(0))
         {
             inputDetected = true;
@@ -159,9 +176,9 @@ public class Mushroom : MonoBehaviour
 
         if (inputDetected)
         {
-            // ÅÍÄ¡ À§Ä¡°¡ ÀÌ ¹ö¼¸ ±ÙÃ³ÀÎÁö È®ÀÎ
+            // ï¿½ï¿½Ä¡ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
             float distance = Vector2.Distance(inputPosition, transform.position);
-            if (distance <= 0.5f) // ÅÍÄ¡ ¹İ°æ
+            if (distance <= 0.5f) // ï¿½ï¿½Ä¡ ï¿½İ°ï¿½
             {
                 OnTouched();
             }
@@ -169,69 +186,81 @@ public class Mushroom : MonoBehaviour
     }
 
     /// <summary>
-    /// ¹ö¼¸ÀÌ ÅÍÄ¡µÇ¾úÀ» ¶§
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½
     /// </summary>
     void OnTouched()
     {
         if (isHarvestable)
         {
-            // ¼öÈ® °¡´ÉÇÑ ¹ö¼¸ ÅÍÄ¡ ½Ã ¼öÈ®
+            // ï¿½ï¿½È® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ ï¿½ï¿½È®
             HarvestMushroom();
         }
         else
         {
-            // ¾ÆÁ÷ ¼º¼÷ÇÏÁö ¾ÊÀº ¹ö¼¸ ÅÍÄ¡ ½Ã ¼ºÀå ÃËÁø
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             BoostGrowth();
         }
     }
 
     /// <summary>
-    /// ¹ö¼¸ ¼öÈ® (¿ÜºÎ¿¡¼­µµ È£Ãâ °¡´ÉÇÏµµ·Ï publicÀ¸·Î º¯°æ)
+    /// ë²„ì„¯ ìˆ˜í™• (ì™¸ë¶€ì—ì„œë„ í˜¸ì¶œ ê°€ëŠ¥í•˜ë„ë¡ publicìœ¼ë¡œ ìœ ì§€)
     /// </summary>
     public void HarvestMushroom()
     {
-        if (!isHarvestable) return; // ¼öÈ® ºÒ°¡´ÉÇÏ¸é ¹«½Ã
+        if (!isHarvestable) return; // ìˆ˜í™• ë¶ˆê°€ëŠ¥í•˜ë©´ ë¬´ì‹œ
 
-        Debug.Log("¹ö¼¸ ¼öÈ®!");
+        Debug.Log($"{mushroomTypeName} ë²„ì„¯ ìˆ˜í™•!");
 
-        // ¼öÈ® È¿°úÀ½ Àç»ı
-        if (SoundManager.Instance != null)
+        // ì¸ë²¤í† ë¦¬ì— ë²„ì„¯ ì¶”ê°€
+        if (InventorySystem.Instance != null)
         {
-            SoundManager.Instance.PlayButtonSFX(); // ÀÓ½Ã·Î ¹öÆ°À½ »ç¿ë
+            InventorySystem.Instance.AddMushroom(mushroomTypeName, 1);
+        }
+        
+        // UI ë§¤ë‹ˆì €ì— ìˆ˜í™• ì•Œë¦¼
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.OnMushroomHarvested(mushroomTypeName, 1);
         }
 
-        // ¼öÈ® È¿°ú (°£´ÜÇÑ Å©±â º¯È­)
+        // ìˆ˜í™• íš¨ê³¼ìŒ ì¬ìƒ
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayButtonSFX(); // ì„ì‹œë¡œ ë²„íŠ¼ìŒ ì‚¬ìš©
+        }
+
+        // ìˆ˜í™• íš¨ê³¼ (ìŠ¤ì¼€ì¼ í¬ê¸° ë³€í™”)
         StartCoroutine(HarvestEffect());
 
-        // ¸Å´ÏÀú¿¡°Ô ¼öÈ® ¾Ë¸²
+        // ë§¤ë‹ˆì €ì—ê²Œ ìˆ˜í™• ì•Œë¦¼
         if (manager != null)
         {
             manager.HarvestMushroom(this);
         }
 
-        // ¹ö¼¸ Á¦°Å
-        Destroy(gameObject, 0.3f); // 0.3ÃÊ ÈÄ Á¦°Å (È¿°ú ½Ã°£)
+        // ì˜¤ë¸Œì íŠ¸ ì œê±°
+        Destroy(gameObject, 0.3f); // 0.3ì´ˆ í›„ ì œê±° (íš¨ê³¼ ì‹œê°„)
     }
 
     /// <summary>
-    /// ¼ºÀå ÃËÁø (ÅÍÄ¡ ½Ã)
+    /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½Ä¡ ï¿½ï¿½)
     /// </summary>
     void BoostGrowth()
     {
-        Debug.Log("¹ö¼¸ ¼ºÀå ÃËÁø!");
+        Debug.Log("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!");
 
-        // 30ÃÊ ¼ºÀå ÃËÁø
+        // 30ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         startTime -= 30f;
 
-        // Áï½Ã ¼ºÀå Ã¼Å©
+        // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
         UpdateGrowth();
 
-        // ÅÍÄ¡ ÇÇµå¹é È¿°ú
+        // ï¿½ï¿½Ä¡ ï¿½Çµï¿½ï¿½ È¿ï¿½ï¿½
         StartCoroutine(TouchFeedbackEffect());
     }
 
     /// <summary>
-    /// ¼öÈ® È¿°ú ¾Ö´Ï¸ŞÀÌ¼Ç
+    /// ï¿½ï¿½È® È¿ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½
     /// </summary>
     IEnumerator HarvestEffect()
     {
@@ -244,7 +273,7 @@ public class Mushroom : MonoBehaviour
             elapsed += Time.deltaTime;
             float progress = elapsed / duration;
 
-            // Å©±â°¡ Ä¿Á³´Ù°¡ »ç¶óÁü
+            // Å©ï¿½â°¡ Ä¿ï¿½ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
             float scale = Mathf.Lerp(1f, 1.5f, progress);
             float alpha = Mathf.Lerp(1f, 0f, progress);
 
@@ -262,7 +291,7 @@ public class Mushroom : MonoBehaviour
     }
 
     /// <summary>
-    /// ÅÍÄ¡ ÇÇµå¹é È¿°ú
+    /// ï¿½ï¿½Ä¡ ï¿½Çµï¿½ï¿½ È¿ï¿½ï¿½
     /// </summary>
     IEnumerator TouchFeedbackEffect()
     {
@@ -275,7 +304,7 @@ public class Mushroom : MonoBehaviour
             elapsed += Time.deltaTime;
             float progress = elapsed / duration;
 
-            // »ìÂ¦ Ä¿Á³´Ù°¡ ¿ø·¡´ë·Î
+            // ï¿½ï¿½Â¦ Ä¿ï¿½ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             float scale = 1f + (Mathf.Sin(progress * Mathf.PI) * 0.1f);
             transform.localScale = originalScale * scale;
 
@@ -286,7 +315,7 @@ public class Mushroom : MonoBehaviour
     }
 
     /// <summary>
-    /// ¹ö¼¸ Á¤º¸ ¹İÈ¯
+    /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
     /// </summary>
     public MushroomInfo GetInfo()
     {
@@ -299,11 +328,11 @@ public class Mushroom : MonoBehaviour
         };
     }
 
-    // ±âÁî¸ğ·Î ÅÍÄ¡ ¹üÀ§ Ç¥½Ã
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, 0.5f); // ÅÍÄ¡ ¹İ°æ
+        Gizmos.DrawWireSphere(transform.position, 0.5f); // ï¿½ï¿½Ä¡ ï¿½İ°ï¿½
 
         if (isHarvestable)
         {
@@ -314,13 +343,13 @@ public class Mushroom : MonoBehaviour
 }
 
 /// <summary>
-/// ¹ö¼¸ Á¤º¸ ±¸Á¶Ã¼
+/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼
 /// </summary>
 [System.Serializable]
 public struct MushroomInfo
 {
-    public Mushroom.GrowthStage stage;      // ÇöÀç ¼ºÀå ´Ü°è
-    public float growthProgress;            // ¼ºÀå ÁøÇà·ü (0~1)
-    public bool isHarvestable;              // ¼öÈ® °¡´É ¿©ºÎ
-    public float timeRemaining;             // ¼º¼÷±îÁö ³²Àº ½Ã°£ (ÃÊ)
+    public Mushroom.GrowthStage stage;      // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½
+    public float growthProgress;            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ (0~1)
+    public bool isHarvestable;              // ï¿½ï¿½È® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    public float timeRemaining;             // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ (ï¿½ï¿½)
 }

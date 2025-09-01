@@ -98,9 +98,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   growthSprites:
-  - {fileID: 787872381, guid: caa06083470b464458e8403d6987de3c, type: 3}
-  - {fileID: -461861188, guid: caa06083470b464458e8403d6987de3c, type: 3}
-  - {fileID: -873410430, guid: caa06083470b464458e8403d6987de3c, type: 3}
+  - {fileID: 784349622, guid: b97c7b55607e1467aba134d24260f1c9, type: 3}
+  - {fileID: 1192789909, guid: b97c7b55607e1467aba134d24260f1c9, type: 3}
+  - {fileID: -1848274938, guid: b97c7b55607e1467aba134d24260f1c9, type: 3}
   currentStage: 0
   growthProgress: 0
   isHarvestable: 0

@@ -28,11 +28,7 @@ public class SimpleWaterDrop : MonoBehaviour
         StartCoroutine(AutoDropRoutine());
     }
 
-    void Update()
-    {
-        // 터치/클릭 감지
-        HandleInput();
-    }
+    // TouchManager에서 터치를 관리하므로 Update에서 터치 감지 제거
 
     /// <summary>
     /// 3초마다 자동으로 물방울 떨어뜨리기
@@ -47,51 +43,13 @@ public class SimpleWaterDrop : MonoBehaviour
     }
 
     /// <summary>
-    /// 터치/클릭 입력 처리
+    /// TouchManager에서 호출되는 종유석 터치 처리 (터치 감지는 TouchManager에서 담당)
     /// </summary>
-    void HandleInput()
+    public void OnStalactiteTouched()
     {
-        bool inputDetected = false;
-        Vector3 inputPosition = Vector3.zero;
-
-        // 모바일 터치
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            if (touch.phase == TouchPhase.Began)
-            {
-                inputDetected = true;
-                inputPosition = Camera.main.ScreenToWorldPoint(touch.position);
-            }
-        }
-        // PC 마우스
-        else if (Input.GetMouseButtonDown(0))
-        {
-            inputDetected = true;
-            inputPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        }
-
-        if (inputDetected)
-        {
-            // 종유석 터치 확인
-            if (IsTouchingStalactite(inputPosition))
-            {
-                TouchFeedback(); // 터치 피드백 효과
-                BoostStalactiteGrowth(); // 성장 촉진 + 균열 증가 
-                DropWater(); // 추가 물방울 떨어뜨리기
-            }
-        }
-    }
-
-    /// <summary>
-    /// 종유석을 터치했는지 확인
-    /// </summary>
-    bool IsTouchingStalactite(Vector3 worldPos)
-    {
-        if (stalactite == null) return false;
-
-        float distance = Vector2.Distance(worldPos, stalactite.position);
-        return distance <= 1f; // 1 유닛 이내면 터치로 인정
+        TouchFeedback(); // 터치 피드백 효과
+        BoostStalactiteGrowth(); // 성장 촉진 + 균열 증가 
+        DropWater(); // 추가 물방울 떨어뜨리기
     }
 
     /// <summary>
@@ -197,10 +155,10 @@ public class SimpleWaterDrop : MonoBehaviour
         StalactiteGrowth stalactiteGrowth = stalactite.GetComponent<StalactiteGrowth>();
         if (stalactiteGrowth != null)
         {
-            // 생성 시간을 1시간 앞당기기 (실제 성장 촉진)
-            stalactiteGrowth.creationTime = stalactiteGrowth.creationTime.AddHours(-1);
+            // 생성 시간을 10분 앞당기기 (성장 촉진 수치 조정)
+            stalactiteGrowth.creationTime = stalactiteGrowth.creationTime.AddMinutes(-10);
 
-            Debug.Log("종유석 성장이 1시간 촉진되었습니다!");
+            Debug.Log("종유석 성장이 10분 촉진되었습니다!");
         }
     }
 

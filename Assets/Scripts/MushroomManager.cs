@@ -4,70 +4,73 @@ using System.Collections.Generic;
 using System;
 
 /// <summary>
-/// ¹ö¼¸ ¼ºÀå ¹× ½Àµµ °ü¸® ½Ã½ºÅÛ
+/// ë²„ì„¯ ì„±ì¥ ë° ìŠµë„ ê´€ë¦¬ ì‹œìŠ¤í…œ
 /// </summary>
 public class MushroomManager : MonoBehaviour
 {
     [Header("Mushroom Settings")]
-    public GameObject mushroomPrefab;           // ¹ö¼¸ ÇÁ¸®ÆÕ
-    public Transform spawnCenter;               // ½ºÆù Áß½ÉÁ¡ (º¸Åë Á¾À¯¼® ¾Æ·¡)
-    public float spawnRadius = 3f;              // ½ºÆù ¹İ°æ
-    public int maxMushrooms = 10;               // ÃÖ´ë ¹ö¼¸ °³¼ö
-
+    public GameObject mushroomPrefab;           // ë²„ì„¯ í”„ë¦¬íŒ¹
+    public Transform spawnCenter;               // ìŠ¤í° ì¤‘ì‹¬ì  (ë³´í†µ ì¢…ìœ ì„ ì•„ë˜)
+    public float spawnRadius = 3f;              // ìŠ¤í° ë°˜ê²½
+    public int maxMushrooms = 10;               // ìµœëŒ€ ë²„ì„¯ ê°œìˆ˜
+    
+    [Header("Mushroom Types")]
+    public MushroomType[] availableMushroomTypes;  // ì‚¬ìš© ê°€ëŠ¥í•œ ë²„ì„¯ ì¢…ë¥˜ë“¤
+    
     [Header("Growth Settings")]
-    public float baseGrowthTime = 300f;         // ±âº» ¼ºÀå ½Ã°£ (5ºĞ)
-    public float growthStageTime = 100f;        // °¢ ´Ü°èº° ¼ºÀå ½Ã°£ (1ºĞ 40ÃÊ)
-
+    public float baseGrowthTime = 300f;         // ê¸°ë³¸ ì„±ì¥ ì‹œê°„ (5ë¶„)
+    public float growthStageTime = 100f;        // ê° ë‹¨ê³„ë³„ ì„±ì¥ ì‹œê°„ (1ë¶„ 40ì´ˆ)
+    
     [Header("Spawn Settings")]
-    public float baseSpawnInterval = 120f;      // ±âº» ½ºÆù °£°İ (2ºĞ)
-    public float optimalHumidityMin = 80f;      // ÃÖÀû ½Àµµ ÃÖ¼Ò°ª
-    public float optimalHumidityMax = 90f;      // ÃÖÀû ½Àµµ ÃÖ´ë°ª
-
+    public float baseSpawnInterval = 120f;      // ê¸°ë³¸ ìŠ¤í° ê°„ê²© (2ë¶„)
+    public float optimalHumidityMin = 80f;      // ìµœì  ìŠµë„ ìµœì†Œê°’
+    public float optimalHumidityMax = 90f;      // ìµœì  ìŠµë„ ìµœëŒ€ê°’
+    
     [Header("Humidity System")]
     [Range(0f, 100f)]
-    public float currentHumidity = 50f;         // ÇöÀç ½Àµµ
-    public float humidityDecayRate = 2f;        // ½Àµµ °¨¼ÒÀ² (½Ã°£´ç)
-    public float humidityPerDrop = 5f;          // ¹°¹æ¿ï ´ç ½Àµµ Áõ°¡·®
-    public float maxHumidity = 100f;            // ÃÖ´ë ½Àµµ
-
+    public float currentHumidity = 50f;         // í˜„ì¬ ìŠµë„
+    public float humidityDecayRate = 2f;        // ìŠµë„ ê°ì†Œìœ¨ (ì‹œê°„ë‹¹)
+    public float humidityPerDrop = 5f;          // ë¬¼ë°©ìš¸ ë‹¹ ìŠµë„ ì¦ê°€ëŸ‰
+    public float maxHumidity = 100f;            // ìµœëŒ€ ìŠµë„
+    
     private List<Mushroom> activeMushrooms = new List<Mushroom>();
     private float nextSpawnTime;
     private const string HUMIDITY_KEY = "cave_humidity";
     private const string LAST_UPDATE_TIME_KEY = "humidity_last_update";
-
+    
     void Start()
     {
         LoadHumidityData();
         CalculateNextSpawnTime();
     }
-
+    
     void Update()
     {
         UpdateHumidity();
-        CheckMushroom»ı¼º();
+        CheckMushroomìƒì„±();
         CleanupDestroyedMushrooms();
     }
-
+    
     /// <summary>
-    /// ½Àµµ ¾÷µ¥ÀÌÆ® (½Ã°£¿¡ µû¸¥ °¨¼Ò)
+    /// ìŠµë„ ì—…ë°ì´íŠ¸ (ì‹œê°„ì— ë”°ë¥¸ ê°ì†Œ)
     /// </summary>
     void UpdateHumidity()
     {
-        // ½Ã°£´ç ½Àµµ °¨¼Ò
-        float humidityDecrease = humidityDecayRate * Time.deltaTime / 3600f; // ÃÊ´ç º¯È¯
+        // ì‹œê°„ë‹¹ ìŠµë„ ê°ì†Œ
+        float humidityDecrease = humidityDecayRate * Time.deltaTime / 3600f; // ì´ˆë‹¹ ë³€í™˜
         currentHumidity = Mathf.Max(0f, currentHumidity - humidityDecrease);
-
-        // ÁÖ±âÀûÀ¸·Î ÀúÀå (1ÃÊ¸¶´Ù)
+        
+        // ì£¼ê¸°ì ìœ¼ë¡œ ì €ì¥ (1ì´ˆë§ˆë‹¤)
         if (Time.time % 1f < Time.deltaTime)
         {
             SaveHumidityData();
         }
     }
-
+    
     /// <summary>
-    /// ¹ö¼¸ »ı¼º Ã¼Å©
+    /// ë²„ì„¯ ìƒì„± ì²´í¬
     /// </summary>
-    void CheckMushroom»ı¼º()
+    void CheckMushroomìƒì„±()
     {
         if (Time.time >= nextSpawnTime && activeMushrooms.Count < maxMushrooms)
         {
@@ -75,44 +78,94 @@ public class MushroomManager : MonoBehaviour
             CalculateNextSpawnTime();
         }
     }
-
+    
     /// <summary>
-    /// ¹ö¼¸ »ı¼º ½Ãµµ
+    /// ë²„ì„¯ ìƒì„± ì‹œë„
     /// </summary>
     void TrySpawnMushroom()
     {
         Vector3 spawnPosition = GetValidSpawnPosition();
         if (spawnPosition != Vector3.zero)
         {
+            // ë²„ì„¯ íƒ€ì… ì„ íƒ
+            MushroomType selectedType = SelectMushroomType();
+            
             GameObject mushroomObj = Instantiate(mushroomPrefab, spawnPosition, Quaternion.identity, transform);
             Mushroom mushroom = mushroomObj.GetComponent<Mushroom>();
-
+            
             if (mushroom == null)
             {
                 mushroom = mushroomObj.AddComponent<Mushroom>();
             }
-
-            mushroom.Initialize(this, growthStageTime);
+            
+            mushroom.Initialize(this, growthStageTime, selectedType);
             activeMushrooms.Add(mushroom);
-
-            Debug.Log($"¹ö¼¸ »ı¼º: À§Ä¡({spawnPosition}), ÃÑ °³¼ö: {activeMushrooms.Count}");
+            
+            Debug.Log($"ë²„ì„¯ ìƒì„±: íƒ€ì…({selectedType?.typeName ?? "ê¸°ë³¸"}), ìœ„ì¹˜({spawnPosition}), ì´ ê°œìˆ˜: {activeMushrooms.Count}");
         }
     }
-
+    
     /// <summary>
-    /// À¯È¿ÇÑ ½ºÆù À§Ä¡ Ã£±â
+    /// ìŠµë„ì™€ í™•ë¥ ì— ë”°ë¼ ë²„ì„¯ íƒ€ì… ì„ íƒ
+    /// </summary>
+    MushroomType SelectMushroomType()
+    {
+        if (availableMushroomTypes == null || availableMushroomTypes.Length == 0)
+            return null;
+            
+        List<MushroomType> validTypes = new List<MushroomType>();
+        
+        // í˜„ì¬ ìŠµë„ì— ì í•©í•œ ë²„ì„¯ íƒ€ì…ë“¤ í•„í„°ë§
+        foreach (var type in availableMushroomTypes)
+        {
+            if (currentHumidity >= type.optimalHumidityMin && currentHumidity <= type.optimalHumidityMax)
+            {
+                validTypes.Add(type);
+            }
+        }
+        
+        // ì í•©í•œ íƒ€ì…ì´ ì—†ìœ¼ë©´ ì²« ë²ˆì§¸ íƒ€ì… ì‚¬ìš©
+        if (validTypes.Count == 0)
+        {
+            validTypes.Add(availableMushroomTypes[0]);
+        }
+        
+        // í™•ë¥ ì— ë”°ë¼ ì„ íƒ
+        float totalWeight = 0f;
+        foreach (var type in validTypes)
+        {
+            totalWeight += type.spawnChance;
+        }
+        
+        float randomValue = UnityEngine.Random.Range(0f, totalWeight);
+        float currentWeight = 0f;
+        
+        foreach (var type in validTypes)
+        {
+            currentWeight += type.spawnChance;
+            if (randomValue <= currentWeight)
+            {
+                return type;
+            }
+        }
+        
+        return validTypes[0]; // ê¸°ë³¸ê°’
+    }
+    
+    /// <summary>
+    /// ìœ íš¨í•œ ìŠ¤í° ìœ„ì¹˜ ì°¾ê¸°
     /// </summary>
     Vector3 GetValidSpawnPosition()
     {
         if (spawnCenter == null) return Vector3.zero;
-
+        
         int attempts = 0;
-        while (attempts < 10) // ÃÖ´ë 10¹ø ½Ãµµ
+        while (attempts < 10) // ìµœëŒ€ 10ë²ˆ ì‹œë„
         {
             Vector2 randomCircle = UnityEngine.Random.insideUnitCircle * spawnRadius;
-            Vector3 candidatePos = spawnCenter.position + new Vector3(randomCircle.x, randomCircle.y*.7f,0);
-
-            // ´Ù¸¥ ¹ö¼¸°ú ³Ê¹« °¡±î¿îÁö Ã¼Å©
+            Vector3 candidatePos = spawnCenter.position + new Vector3(randomCircle.x, 0, randomCircle.y);
+            
+            // ë‹¤ë¥¸ ë²„ì„¯ê³¼ ë„ˆë¬´ ê°€ê¹Œìš´ì§€ ì²´í¬
             bool tooClose = false;
             foreach (Mushroom existingMushroom in activeMushrooms)
             {
@@ -122,92 +175,92 @@ public class MushroomManager : MonoBehaviour
                     break;
                 }
             }
-
+            
             if (!tooClose)
             {
                 return candidatePos;
             }
-
+            
             attempts++;
         }
-
-        return Vector3.zero; // ÀûÀıÇÑ À§Ä¡¸¦ Ã£Áö ¸øÇÔ
+        
+        return Vector3.zero; // ì ì ˆí•œ ìœ„ì¹˜ë¥¼ ì°¾ì§€ ëª»í•¨
     }
-
+    
     /// <summary>
-    /// ´ÙÀ½ ½ºÆù ½Ã°£ °è»ê (½Àµµ¿¡ µû¶ó Á¶Á¤)
+    /// ë‹¤ìŒ ìŠ¤í° ì‹œê°„ ê³„ì‚° (ìŠµë„ì— ë”°ë¼ ì¡°ì •)
     /// </summary>
     void CalculateNextSpawnTime()
     {
         float humidityMultiplier = GetHumiditySpawnMultiplier();
         float adjustedInterval = baseSpawnInterval / humidityMultiplier;
-
+        
         nextSpawnTime = Time.time + adjustedInterval;
-
-        Debug.Log($"´ÙÀ½ ¹ö¼¸ ½ºÆù: {adjustedInterval:F1}ÃÊ ÈÄ (½Àµµ: {currentHumidity:F1}%, ¹èÀ²: {humidityMultiplier:F2}x)");
+        
+        Debug.Log($"ë‹¤ìŒ ë²„ì„¯ ìŠ¤í°: {adjustedInterval:F1}ì´ˆ í›„ (ìŠµë„: {currentHumidity:F1}%, ë°°ìœ¨: {humidityMultiplier:F2}x)");
     }
-
+    
     /// <summary>
-    /// ½Àµµ¿¡ µû¸¥ ½ºÆù ºóµµ ¹èÀ² °è»ê
+    /// ìŠµë„ì— ë”°ë¥¸ ìŠ¤í° ë¹ˆë„ ë°°ìœ¨ ê³„ì‚°
     /// </summary>
     float GetHumiditySpawnMultiplier()
     {
         if (currentHumidity >= optimalHumidityMin && currentHumidity <= optimalHumidityMax)
         {
-            // ÃÖÀû ½Àµµ ¹üÀ§: 3¹è ºü¸¥ ½ºÆù
+            // ìµœì  ìŠµë„ ë²”ìœ„: 3ë°° ë¹ ë¥¸ ìŠ¤í°
             return 3f;
         }
         else if (currentHumidity >= 60f && currentHumidity < optimalHumidityMin)
         {
-            // Àû´çÇÑ ½Àµµ: 1.5¹è ºü¸¥ ½ºÆù
+            // ì ë‹¹í•œ ìŠµë„: 1.5ë°° ë¹ ë¥¸ ìŠ¤í°
             return 1.5f;
         }
         else if (currentHumidity > optimalHumidityMax && currentHumidity <= 95f)
         {
-            // ½Àµµ °ú´Ù: 2¹è ºü¸¥ ½ºÆù (¿©ÀüÈ÷ ÁÁÀ½)
+            // ìŠµë„ ê³¼ë‹¤: 2ë°° ë¹ ë¥¸ ìŠ¤í° (ì—¬ì „íˆ ì¢‹ìŒ)
             return 2f;
         }
         else
         {
-            // °ÇÁ¶ÇÏ°Å³ª ³Ê¹« ½ÀÇÔ: ±âº» ¼Óµµ
+            // ê±´ì¡°í•˜ê±°ë‚˜ ë„ˆë¬´ ìŠµí•¨: ê¸°ë³¸ ì†ë„
             return 1f;
         }
     }
-
+    
     /// <summary>
-    /// ¹°¹æ¿ï·Î ÀÎÇÑ ½Àµµ Áõ°¡ (SimpleWaterDrop¿¡¼­ È£Ãâ)
+    /// ë¬¼ë°©ìš¸ë¡œ ì¸í•œ ìŠµë„ ì¦ê°€ (SimpleWaterDropì—ì„œ í˜¸ì¶œ)
     /// </summary>
     public void AddHumidityFromWaterDrop()
     {
         currentHumidity = Mathf.Min(maxHumidity, currentHumidity + humidityPerDrop);
-        Debug.Log($"¹°¹æ¿ï·Î ½Àµµ Áõ°¡: +{humidityPerDrop} ¡æ {currentHumidity:F1}%");
+        Debug.Log($"ë¬¼ë°©ìš¸ë¡œ ìŠµë„ ì¦ê°€: +{humidityPerDrop} â†’ {currentHumidity:F1}%");
     }
-
+    
     /// <summary>
-    /// ¹ö¼¸ ¼öÈ® (¹ö¼¸¿¡¼­ È£Ãâ)
+    /// ë²„ì„¯ ìˆ˜í™• (ë²„ì„¯ì—ì„œ í˜¸ì¶œ)
     /// </summary>
     public void HarvestMushroom(Mushroom mushroom)
     {
         if (activeMushrooms.Contains(mushroom))
         {
             activeMushrooms.Remove(mushroom);
-            Debug.Log($"¹ö¼¸ ¼öÈ®! ³²Àº °³¼ö: {activeMushrooms.Count}");
-
-            // TODO: ¿©±â¿¡ ¹ö¼¸ ¼öÁı Ä«¿îÅÍ Áõ°¡ ·ÎÁ÷ Ãß°¡
+            Debug.Log($"ë²„ì„¯ ìˆ˜í™•! ë‚¨ì€ ê°œìˆ˜: {activeMushrooms.Count}");
+            
+            // TODO: ì—¬ê¸°ì— ë²„ì„¯ ìˆ˜ì§‘ ì¹´ìš´í„° ì¦ê°€ ë¡œì§ ì¶”ê°€
             // InventoryManager.AddMushroom(1);
         }
     }
-
+    
     /// <summary>
-    /// ÆÄ±«µÈ ¹ö¼¸µé Á¤¸®
+    /// íŒŒê´´ëœ ë²„ì„¯ë“¤ ì •ë¦¬
     /// </summary>
     void CleanupDestroyedMushrooms()
     {
         activeMushrooms.RemoveAll(mushroom => mushroom == null);
     }
-
+    
     /// <summary>
-    /// ½Àµµ µ¥ÀÌÅÍ ÀúÀå
+    /// ìŠµë„ ë°ì´í„° ì €ì¥
     /// </summary>
     void SaveHumidityData()
     {
@@ -215,14 +268,14 @@ public class MushroomManager : MonoBehaviour
         PlayerPrefs.SetString(LAST_UPDATE_TIME_KEY, DateTime.Now.ToBinary().ToString());
         PlayerPrefs.Save();
     }
-
+    
     /// <summary>
-    /// ½Àµµ µ¥ÀÌÅÍ ·Îµå
+    /// ìŠµë„ ë°ì´í„° ë¡œë“œ
     /// </summary>
     void LoadHumidityData()
     {
-        currentHumidity = PlayerPrefs.GetFloat(HUMIDITY_KEY, 50f); // ±âº»°ª 50%
-
+        currentHumidity = PlayerPrefs.GetFloat(HUMIDITY_KEY, 50f); // ê¸°ë³¸ê°’ 50%
+        
         if (PlayerPrefs.HasKey(LAST_UPDATE_TIME_KEY))
         {
             try
@@ -230,27 +283,27 @@ public class MushroomManager : MonoBehaviour
                 long lastUpdateBinary = Convert.ToInt64(PlayerPrefs.GetString(LAST_UPDATE_TIME_KEY));
                 DateTime lastUpdateTime = DateTime.FromBinary(lastUpdateBinary);
                 DateTime now = DateTime.Now;
-
-                // ¿ÀÇÁ¶óÀÎ ½Ã°£ µ¿¾ÈÀÇ ½Àµµ °¨¼Ò °è»ê
+                
+                // ì˜¤í”„ë¼ì¸ ì‹œê°„ ë™ì•ˆì˜ ìŠµë„ ê°ì†Œ ê³„ì‚°
                 TimeSpan offlineTime = now - lastUpdateTime;
-                if (offlineTime.TotalMinutes > 1) // 1ºĞ ÀÌ»ó ¿ÀÇÁ¶óÀÎÀÌ¾úÀ» ¶§¸¸
+                if (offlineTime.TotalMinutes > 1) // 1ë¶„ ì´ìƒ ì˜¤í”„ë¼ì¸ì´ì—ˆì„ ë•Œë§Œ
                 {
                     float offlineHours = (float)offlineTime.TotalHours;
                     float humidityLoss = humidityDecayRate * offlineHours;
                     currentHumidity = Mathf.Max(0f, currentHumidity - humidityLoss);
-
-                    Debug.Log($"¿ÀÇÁ¶óÀÎ ½Àµµ °¨¼Ò: {offlineHours:F1}½Ã°£ ¡æ -{humidityLoss:F1}% ¡æ ÇöÀç {currentHumidity:F1}%");
+                    
+                    Debug.Log($"ì˜¤í”„ë¼ì¸ ìŠµë„ ê°ì†Œ: {offlineHours:F1}ì‹œê°„ â†’ -{humidityLoss:F1}% â†’ í˜„ì¬ {currentHumidity:F1}%");
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"½Àµµ µ¥ÀÌÅÍ ·Îµå ½ÇÆĞ: {e.Message}");
+                Debug.LogError($"ìŠµë„ ë°ì´í„° ë¡œë“œ ì‹¤íŒ¨: {e.Message}");
             }
         }
     }
-
+    
     /// <summary>
-    /// ÇöÀç ½Àµµ Á¤º¸ ¹İÈ¯
+    /// í˜„ì¬ ìŠµë„ ì •ë³´ ë°˜í™˜
     /// </summary>
     public HumidityInfo GetHumidityInfo()
     {
@@ -262,31 +315,31 @@ public class MushroomManager : MonoBehaviour
             nextSpawnIn = Mathf.Max(0f, nextSpawnTime - Time.time)
         };
     }
-
-    // ±âÁî¸ğ·Î ½ºÆù ¹üÀ§ Ç¥½Ã
+    
+    // ê¸°ì¦ˆëª¨ë¡œ ìŠ¤í° ë²”ìœ„ í‘œì‹œ
     void OnDrawGizmos()
     {
         if (spawnCenter != null)
         {
-            // ½ºÆù ¹üÀ§ Ç¥½Ã
+            // ìŠ¤í° ë²”ìœ„ í‘œì‹œ
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(spawnCenter.position, spawnRadius);
-
-            // Áß½ÉÁ¡ Ç¥½Ã
+            
+            // ì¤‘ì‹¬ì  í‘œì‹œ
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(spawnCenter.position, 0.1f);
         }
     }
-
+    
     void OnDrawGizmosSelected()
     {
         if (spawnCenter != null)
         {
-            // ¼±ÅÃ ½Ã ´õ ÀÚ¼¼ÇÑ Á¤º¸ Ç¥½Ã
+            // ì„ íƒ ì‹œ ë” ìì„¸í•œ ì •ë³´ í‘œì‹œ
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(spawnCenter.position, spawnRadius * 0.5f);
-
-            // ±âÁ¸ ¹ö¼¸µé À§Ä¡ Ç¥½Ã
+            
+            // ê¸°ì¡´ ë²„ì„¯ë“¤ ìœ„ì¹˜ í‘œì‹œ
             Gizmos.color = Color.red;
             foreach (Mushroom mushroom in activeMushrooms)
             {
@@ -297,20 +350,20 @@ public class MushroomManager : MonoBehaviour
             }
         }
     }
-
-    // µğ¹ö±×¿ë
+    
+    // ë””ë²„ê·¸ìš©
     [ContextMenu("Spawn Mushroom Now")]
     public void SpawnMushroomNow()
     {
         TrySpawnMushroom();
     }
-
+    
     [ContextMenu("Add Humidity")]
     public void AddHumidity()
     {
         AddHumidityFromWaterDrop();
     }
-
+    
     [ContextMenu("Reset Humidity")]
     public void ResetHumidity()
     {
@@ -320,13 +373,13 @@ public class MushroomManager : MonoBehaviour
 }
 
 /// <summary>
-/// ½Àµµ Á¤º¸ ±¸Á¶Ã¼
+/// ìŠµë„ ì •ë³´ êµ¬ì¡°ì²´
 /// </summary>
 [System.Serializable]
 public struct HumidityInfo
 {
-    public float currentHumidity;    // ÇöÀç ½Àµµ
-    public float spawnMultiplier;    // ½ºÆù ¹èÀ²
-    public int mushroomCount;        // ÇöÀç ¹ö¼¸ °³¼ö
-    public float nextSpawnIn;        // ´ÙÀ½ ½ºÆù±îÁö ½Ã°£
+    public float currentHumidity;    // í˜„ì¬ ìŠµë„
+    public float spawnMultiplier;    // ìŠ¤í° ë°°ìœ¨
+    public int mushroomCount;        // í˜„ì¬ ë²„ì„¯ ê°œìˆ˜
+    public float nextSpawnIn;        // ë‹¤ìŒ ìŠ¤í°ê¹Œì§€ ì‹œê°„
 }
